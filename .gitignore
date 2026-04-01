@@ -1,0 +1,21 @@
+__pycache__/
+*.pyc
+*.pyo
+.claude/
+
+# Old standalone files (pre-integration)
+sossen.py
+sossen_sensors.yaml
+sossen.zip
+
+# Debug scripts (development only)
+debug/
+
+# Dashboard (user-specific)
+dashboard_solare.yaml
+
+# Project notes (not for distribution)
+CLAUDE.md
+
+# Logo source
+logo.webp
