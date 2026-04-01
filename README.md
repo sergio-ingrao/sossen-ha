@@ -56,7 +56,7 @@ Potentially compatible with other SOSSEN microinverters using the Tuya v3.5 prot
 
 1. Open HACS in Home Assistant
 2. Go to **Integrations** → three-dot menu → **Custom repositories**
-3. Add `https://github.com/sergioingrao/sossen-ha` as type **Integration**
+3. Add `https://github.com/caveman2024/sossen-ha` as type **Integration**
 4. Search for "SOSSEN" and install
 5. Restart Home Assistant
 6. Go to **Settings → Devices & Services → Add Integration** → search for "SOSSEN"
@@ -112,6 +112,6 @@ MIT
 
 ## Contributing
 
-Bug reports and pull requests are welcome on [GitHub](https://github.com/sergioingrao/sossen-ha/issues).
+Bug reports and pull requests are welcome on [GitHub](https://github.com/caveman2024/sossen-ha/issues).
 
 If you have a SOSSEN inverter with a different model, your raw data (from the "Raw Data" diagnostic sensor) is valuable for mapping new registers!

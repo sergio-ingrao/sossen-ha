@@ -1,11 +1,11 @@
 {
   "domain": "sossen",
   "name": "SOSSEN Microinverter",
-  "codeowners": ["@sergio-ingrao"],
+  "codeowners": ["@caveman2024"],
   "config_flow": true,
-  "documentation": "https://github.com/sergio-ingrao/sossen-ha",
+  "documentation": "https://github.com/caveman2024/sossen-ha",
   "iot_class": "local_polling",
-  "issue_tracker": "https://github.com/sergio-ingrao/sossen-ha/issues",
+  "issue_tracker": "https://github.com/caveman2024/sossen-ha/issues",
   "requirements": ["tinytuya>=1.15.0"],
   "version": "1.0.2"
 }
