@@ -102,7 +102,7 @@ For an animated energy flow dashboard, install [Power Flow Card Plus](https://gi
 
 ## Author
 
-Developed by **Sergio Ingrao** with the assistance of Claude Code (Anthropic).
+Developed by **caveman2024** with the assistance of Claude Code (Anthropic).
 
 Born from the need to monitor a residential solar system with Astronergy N7S 450W bifacial panels, after discovering that standard Tuya integrations do not support the proprietary SOSSEN protocol.
 
