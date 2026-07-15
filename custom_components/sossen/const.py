@@ -33,10 +33,13 @@ MODELS = {
 # Consecutive failed polls before the TCP probe decides between
 # "inverter powered off" and "communication error".
 MAX_FAILED_POLLS = 3
-# Consecutive failures after which the socket is torn down to force a
-# reconnect. Must be well above the ~2 min the device needs after a new
-# connection before it starts answering polls.
-RECONNECT_AFTER_FAILURES = 30
+# Consecutive failures after which a wedged socket is torn down and rebuilt.
+# Kept low so a dropped session heals in seconds instead of minutes; the
+# rebuilt socket is protected by WARMUP_POLLS (see the coordinator), so it
+# still gets the ~2 min of stable connection the device needs before it
+# answers, and the sensors stay on their last value rather than flipping to
+# unavailable during the reconnect.
+RECONNECT_AFTER_FAILURES = 3
 # Failed polls tolerated (reported as "off", not as an error) while the
 # device boots: it needs ~2 min after power-on before answering.
 WARMUP_POLLS = 20

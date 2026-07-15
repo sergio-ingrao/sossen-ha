@@ -71,6 +71,10 @@ class SossenCoordinator(DataUpdateCoordinator):
         # Grace period at HA start too: the device may still be warming up.
         self._warmup_polls_left: int = WARMUP_POLLS
         self.is_powered_off: bool = False
+        # Re-arm the warm-up grace only once per outage (reset on the next
+        # successful poll) so a wedged socket heals silently but a genuinely
+        # dead device still surfaces as unavailable instead of stale data.
+        self._reconnect_grace_used: bool = False
         # The tinytuya Device shares one socket and session state: never let
         # two executor threads (poll vs. set-limit) touch it concurrently.
         self._device_lock = asyncio.Lock()
@@ -211,6 +215,7 @@ class SossenCoordinator(DataUpdateCoordinator):
             _LOGGER.info("Inverter powered back on, resuming polling")
             self.is_powered_off = False
             self._failed_polls = 0
+            self._reconnect_grace_used = False
             # Grace period: after power-on the device needs ~2 min of
             # established connection before it answers polls.
             self._warmup_polls_left = WARMUP_POLLS
@@ -222,6 +227,7 @@ class SossenCoordinator(DataUpdateCoordinator):
         if data is not None:
             self._failed_polls = 0
             self._warmup_polls_left = 0
+            self._reconnect_grace_used = False
             _LOGGER.debug("Got data: AC power=%sW", data.get("ac_power_w"))
             # Read power limit once after first successful poll, but give up
             # after a few attempts (the query may never be answered) so the
@@ -244,12 +250,25 @@ class SossenCoordinator(DataUpdateCoordinator):
 
         self._failed_polls += 1
 
-        # The protocol session may be dead (device rebooted, DHCP change):
-        # force a reconnect cycle, but rarely — after a fresh connection the
-        # device needs ~2 minutes before it answers polls.
-        if self._failed_polls % RECONNECT_AFTER_FAILURES == 0:
+        # A socket that answered before and then went silent is usually
+        # wedged (device rebooted, session dropped, DHCP change). Tear it
+        # down and give the rebuilt socket the same warm-up grace a cold
+        # device gets, so it heals without flipping the sensors to
+        # "unavailable". Only reconnect while NOT already warming up: the
+        # fresh socket needs ~2 min of *stable* connection before the device
+        # answers, so reconnecting mid-warm-up would keep it from ever
+        # establishing. The grace is re-armed only once per outage
+        # (self._reconnect_grace_used, reset on success) so a genuinely dead
+        # device still surfaces as unavailable once the grace runs out.
+        if (
+            self._warmup_polls_left == 0
+            and self._failed_polls >= RECONNECT_AFTER_FAILURES
+        ):
             _LOGGER.debug("Forcing reconnect after %d failed polls", self._failed_polls)
             await self._locked_job(self._disconnect)
+            if not self._reconnect_grace_used:
+                self._warmup_polls_left = WARMUP_POLLS
+                self._reconnect_grace_used = True
 
         # Tolerate brief blips before deciding anything.
         if self._failed_polls < MAX_FAILED_POLLS:
