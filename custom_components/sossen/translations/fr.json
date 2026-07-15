@@ -1,0 +1,115 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Micro-onduleur SOSSEN",
+        "description": "Saisissez les informations de connexion de votre onduleur SOSSEN.\n\n⚠️ **L'onduleur doit être alimenté pendant la configuration** (production solaire ou batterie) — il s'éteint complètement lorsqu'il n'a aucune source d'énergie. Après la configuration, patientez 2 à 3 minutes avant que les données n'apparaissent.",
+        "data": {
+          "model": "Modèle d'onduleur",
+          "device_ip": "Adresse IP de l'appareil",
+          "device_id": "ID de l'appareil",
+          "local_key": "Clé locale",
+          "poll_interval": "Intervalle d'interrogation (secondes)"
+        },
+        "data_description": {
+          "model": "Famille de votre onduleur : nombre d'entrées panneau et puissance maximale",
+          "device_ip": "IP locale de l'onduleur (ex. 192.168.1.x)",
+          "device_id": "App Smart Life → Réglages → Informations sur l'appareil → ID de l'appareil",
+          "local_key": "Depuis Tuya IoT Platform → Appareils → Clé locale",
+          "poll_interval": "Fréquence d'interrogation de l'onduleur (minimum 5 secondes)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Impossible de se connecter à l'onduleur. Vérifiez l'IP, l'ID de l'appareil et la clé locale."
+    },
+    "abort": {
+      "already_configured": "Cet appareil est déjà configuré."
+    }
+  },
+  "selector": {
+    "model": {
+      "options": {
+        "2in1": "SOSSEN 2in1 — 2 panneaux (600 / 800 / 1000 W)",
+        "4in1": "SOSSEN 4in1 — 4 panneaux (2400 W)"
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "dc_power_total_w": {
+        "name": "Puissance DC totale"
+      },
+      "ac_power_w": {
+        "name": "Puissance AC"
+      },
+      "ac_voltage_v": {
+        "name": "Tension AC"
+      },
+      "ac_frequency_hz": {
+        "name": "Fréquence AC"
+      },
+      "dc_voltage_1_v": {
+        "name": "Tension DC 1"
+      },
+      "dc_current_1_a": {
+        "name": "Courant DC 1"
+      },
+      "dc_power_1_w": {
+        "name": "Puissance DC 1"
+      },
+      "dc_voltage_2_v": {
+        "name": "Tension DC 2"
+      },
+      "dc_current_2_a": {
+        "name": "Courant DC 2"
+      },
+      "dc_power_2_w": {
+        "name": "Puissance DC 2"
+      },
+      "dc_voltage_3_v": {
+        "name": "Tension DC 3"
+      },
+      "dc_current_3_a": {
+        "name": "Courant DC 3"
+      },
+      "dc_power_3_w": {
+        "name": "Puissance DC 3"
+      },
+      "dc_voltage_4_v": {
+        "name": "Tension DC 4"
+      },
+      "dc_current_4_a": {
+        "name": "Courant DC 4"
+      },
+      "dc_power_4_w": {
+        "name": "Puissance DC 4"
+      },
+      "energy_total_kwh": {
+        "name": "Énergie totale"
+      },
+      "temperature_c": {
+        "name": "Température"
+      },
+      "wifi_signal": {
+        "name": "Paramètre 4172"
+      },
+      "status": {
+        "name": "État",
+        "state": {
+          "producing": "En production",
+          "alarm": "Alarme",
+          "off": "Éteint"
+        }
+      },
+      "raw": {
+        "name": "Données brutes"
+      }
+    },
+    "number": {
+      "power_limit": {
+        "name": "Limite de puissance"
+      }
+    }
+  }
+}

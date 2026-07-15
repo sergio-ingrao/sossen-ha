@@ -1,26 +1,26 @@
 # SOSSEN Microinverter
 
-Local integration for **SOSSEN 2in1-DE** microinverters (600W / 800W / 1000W).
+Local integration for **SOSSEN 2in1** (600W / 800W / 1000W) and **SOSSEN 4in1** (2400W) microinverters.
 
 Direct communication over the local network — no cloud, no delays.
 
 ## Features
 
-* **13 sensors** for real-time solar production (power, voltage, current, frequency, temperature, energy)
+* Real-time solar production sensors (power, voltage, current, frequency, temperature, energy) — per-panel channels included
 * **Inverter status** with 3 states: producing, alarm, off
-* **Power limit control** (500-1000W) directly from HA
-* **Daytime-only mode** to avoid polling at night
+* **Power limit control** directly from HA (500 W up to the model maximum)
+* **Automatic on/off detection** from the network (battery systems producing at night are supported): when off, power drops to 0, unmeasurable values go unavailable, the energy counter is preserved
 * **Diagnostic sensor** with all raw register values
 * Updates every **10 seconds** (configurable)
 * Compatible with HA **Energy Dashboard**
+* Available in **English, Italian, German and French**
 
 ## Requirements
 
 * The inverter must be on the same local network as Home Assistant
 * You will need: Device ID, local IP, and Local Key (obtainable from the [Tuya IoT Platform](https://iot.tuya.com))
 
-## Tested models
+## Supported models
 
-* SOSSEN 2in1-DE 600W
-* SOSSEN 2in1-DE 800W
-* SOSSEN 2in1-DE 1000W
+* SOSSEN 2in1 — 600W / 800W / 1000W (2 panels)
+* SOSSEN 4in1 — 2400W (4 panels, community-verified register mapping)

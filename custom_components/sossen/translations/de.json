@@ -1,0 +1,115 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "SOSSEN Mikrowechselrichter",
+        "description": "Gib die Verbindungsdaten für deinen SOSSEN-Wechselrichter ein.\n\n⚠️ **Der Wechselrichter muss während der Einrichtung mit Strom versorgt sein** (Produktion aus Sonne oder Batterie) — ohne Energiequelle schaltet er sich vollständig aus. Nach der Einrichtung bitte 2–3 Minuten warten, bis Daten erscheinen.",
+        "data": {
+          "model": "Wechselrichter-Modell",
+          "device_ip": "Geräte-IP-Adresse",
+          "device_id": "Geräte-ID",
+          "local_key": "Lokaler Schlüssel",
+          "poll_interval": "Abfrageintervall (Sekunden)"
+        },
+        "data_description": {
+          "model": "Familie deines Wechselrichters: Anzahl der Paneleingänge und maximale Leistung",
+          "device_ip": "Lokale IP-Adresse des Wechselrichters (z. B. 192.168.1.x)",
+          "device_id": "Smart Life App → Einstellungen → Geräteinformationen → Geräte-ID",
+          "local_key": "Tuya IoT Platform → Geräte → Lokaler Schlüssel",
+          "poll_interval": "Wie oft der Wechselrichter abgefragt wird (mindestens 5 Sekunden)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Verbindung zum Wechselrichter fehlgeschlagen. Bitte IP-Adresse, Geräte-ID und lokalen Schlüssel prüfen."
+    },
+    "abort": {
+      "already_configured": "Dieses Gerät ist bereits konfiguriert."
+    }
+  },
+  "selector": {
+    "model": {
+      "options": {
+        "2in1": "SOSSEN 2in1 — 2 Panels (600 / 800 / 1000 W)",
+        "4in1": "SOSSEN 4in1 — 4 Panels (2400 W)"
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "dc_power_total_w": {
+        "name": "DC-Gesamtleistung"
+      },
+      "ac_power_w": {
+        "name": "AC-Leistung"
+      },
+      "ac_voltage_v": {
+        "name": "AC-Spannung"
+      },
+      "ac_frequency_hz": {
+        "name": "AC-Frequenz"
+      },
+      "dc_voltage_1_v": {
+        "name": "DC-Spannung 1"
+      },
+      "dc_current_1_a": {
+        "name": "DC-Strom 1"
+      },
+      "dc_power_1_w": {
+        "name": "DC-Leistung 1"
+      },
+      "dc_voltage_2_v": {
+        "name": "DC-Spannung 2"
+      },
+      "dc_current_2_a": {
+        "name": "DC-Strom 2"
+      },
+      "dc_power_2_w": {
+        "name": "DC-Leistung 2"
+      },
+      "dc_voltage_3_v": {
+        "name": "DC-Spannung 3"
+      },
+      "dc_current_3_a": {
+        "name": "DC-Strom 3"
+      },
+      "dc_power_3_w": {
+        "name": "DC-Leistung 3"
+      },
+      "dc_voltage_4_v": {
+        "name": "DC-Spannung 4"
+      },
+      "dc_current_4_a": {
+        "name": "DC-Strom 4"
+      },
+      "dc_power_4_w": {
+        "name": "DC-Leistung 4"
+      },
+      "energy_total_kwh": {
+        "name": "Gesamtenergie"
+      },
+      "temperature_c": {
+        "name": "Temperatur"
+      },
+      "wifi_signal": {
+        "name": "Parameter 4172"
+      },
+      "status": {
+        "name": "Status",
+        "state": {
+          "producing": "Produziert",
+          "alarm": "Alarm",
+          "off": "Aus"
+        }
+      },
+      "raw": {
+        "name": "Rohdaten"
+      }
+    },
+    "number": {
+      "power_limit": {
+        "name": "Leistungsbegrenzung"
+      }
+    }
+  }
+}

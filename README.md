@@ -1,6 +1,6 @@
 # SOSSEN Microinverter - Home Assistant Integration
 
-Local integration for **SOSSEN 2in1-DE** microinverters (600W / 800W / 1000W) for Home Assistant.
+Local integration for **SOSSEN 2in1** (600W / 800W / 1000W) and **SOSSEN 4in1** (2400W) microinverters for Home Assistant.
 
 Direct communication over the **local network** via Tuya v3.5 protocol — no cloud, no delays, no external servers.
 
@@ -12,41 +12,60 @@ This integration reads production data directly from the SOSSEN microinverter an
 
 | Sensor | Description | Unit |
 |--------|-------------|------|
-| DC Total Power | Combined power from both panels | W |
+| DC Total Power | Combined power from all panels | W |
 | AC Power | Inverter output power (fed to grid) | W |
 | AC Voltage | Grid voltage | V |
 | AC Frequency | Grid frequency | Hz |
-| DC Voltage 1 / 2 | Input voltage from each panel | V |
-| DC Current 1 / 2 | Input current from each panel | A |
-| DC Power 1 / 2 | Power from each panel | W |
+| DC Voltage 1-4 | Input voltage from each panel | V |
+| DC Current 1-4 | Input current from each panel | A |
+| DC Power 1-4 | Power from each panel | W |
 | Total Energy | Cumulative energy counter (odometer style) | kWh |
 | Temperature | Inverter internal temperature | C |
 | Inverter Status | Operating state: producing / alarm / off | — |
+
+Channel 3/4 sensors are created only for 4in1 models.
 
 ### Controls
 
 | Control | Description |
 |---------|-------------|
-| Power Limit | Set the output power limit (500-1000W) |
-| Daytime Only | Enable/disable polling only during daylight hours |
+| Power Limit | Set the output power limit (500 W up to the model maximum) |
 
 ### Diagnostics
 
 | Sensor | Description |
 |--------|-------------|
-| Raw Data | Shows all raw register (DP) values as attributes |
+| Raw Data | Shows all raw register (DP) values as attributes (disabled by default) |
+| Parameter 4172 | Unknown register, exposed to help map it (function still unverified) |
 
 ## Supported models
 
-- **SOSSEN 2in1-DE 600W**
-- **SOSSEN 2in1-DE 800W** (tested)
-- **SOSSEN 2in1-DE 1000W** (software upgrade of the same hardware)
+The model is selected during setup:
+
+- **SOSSEN 2in1** — 2 panels, 600W / 800W / 1000W (800W tested by the author; 1000W is a software upgrade of the same hardware)
+- **SOSSEN 4in1** — 4 panels, 2400W (channel 3/4 register mapping contributed and verified by the community — thanks [@flrs-94](https://github.com/flrs-94) and [@Loudramin](https://github.com/Loudramin))
 
 Potentially compatible with other SOSSEN microinverters using the Tuya v3.5 protocol with proprietary Base64 payload. If you have a different model and it works (or doesn't), please open an issue!
 
+## On/off detection
+
+The inverter has no standby power: without sun (or a battery) it switches off completely. The integration deduces its state from the network — no sun-position guessing, so **battery-equipped systems producing at night are fully supported**:
+
+- While the inverter answers polls, it is **on** and data flows normally
+- If it stops answering but its TCP port is still reachable, it is powered but something is wrong: all entities become **unavailable** (stale data is never shown as fresh)
+- If its TCP port becomes unreachable, it is **powered off**: polling slows down to a light TCP probe every 60 seconds (resuming automatically at the normal rate as soon as power is back), and an honest "off" state is reported instead of freezing the last values:
+  - **Power and current sensors drop to 0** — production really is zero
+  - **Voltage, frequency and temperature sensors become unavailable** — there is nothing to measure
+  - **Total Energy keeps its last value** — it is an odometer-style counter, so the Energy dashboard is never corrupted by a fake meter reset
+  - **Inverter Status shows "Off"**
+
+## Languages
+
+English, Italian, German and French (config flow and entity names).
+
 ## Requirements
 
-- Home Assistant 2024.1.0 or higher
+- Home Assistant 2024.4.0 or higher
 - The inverter must be on the same local network as Home Assistant
 - Required: **Device ID**, **local IP**, and **Local Key**
 
@@ -69,7 +88,7 @@ Potentially compatible with other SOSSEN microinverters using the Tuya v3.5 prot
 
 ## Important
 
-> **⚠️ The inverter is solar-powered only** — it has no standby power and is completely off when panels are not producing (night, heavy clouds). Configuration and first data reception can only happen during solar production hours. After connecting, allow **2-3 minutes** before data starts appearing.
+> **⚠️ The inverter has no standby power** — it is completely off when it has no power source (no sun and no battery). Configuration and first data reception can only happen while the inverter is powered. After connecting, allow **2-3 minutes** before data starts appearing.
 
 ## Configuration
 
@@ -106,7 +125,7 @@ For an animated energy flow dashboard, install [Power Flow Card Plus](https://gi
 
 ## Author
 
-Developed by **caveman2024** with the assistance of Claude Code (Anthropic).
+Developed by **caveman2024**.
 
 Born from the need to monitor a residential solar system with Astronergy N7S 450W bifacial panels, after discovering that standard Tuya integrations do not support the proprietary SOSSEN protocol.
 
