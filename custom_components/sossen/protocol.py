@@ -44,9 +44,16 @@ def decode_records(payload_b64: str) -> dict:
             records[dp_id] = value
             i += 6
         else:
-            # Framing error: stop rather than resync, which could latch
-            # onto a 0x01 0x01 inside a value and emit garbage records.
-            break
+            # Real payloads are not a clean run of 6-byte records (there are
+            # gap/padding bytes between DP blocks, e.g. around DP 4152/4156),
+            # so resync one byte at a time to the next 0x01 0x01 marker rather
+            # than stopping. Breaking here aborts before DP_AC_VOLTAGE (4103)
+            # is read, which makes decode_payload() return None and every
+            # sensor read as off — the whole payload is discarded. The stray
+            # 0x01 0x01-inside-a-value risk is tolerated: decode_payload gates
+            # on DP_AC_VOLTAGE and the DP ids are sane, so it never mattered
+            # in practice.
+            i += 1
     return records
 
 
