@@ -2,13 +2,19 @@
 
 import logging
 
-from homeassistant.components.number import NumberEntity, NumberMode
+from homeassistant.components.number import NumberDeviceClass, NumberEntity, NumberMode
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import CONF_DEVICE_ID, DOMAIN
+from .const import (
+    CONF_DEVICE_ID,
+    DOMAIN,
+    POWER_LIMIT_MIN,
+    POWER_LIMIT_STEP,
+    build_device_info,
+)
 from .coordinator import SossenCoordinator
 
 _LOGGER = logging.getLogger(__name__)
@@ -26,11 +32,11 @@ class SossenPowerLimit(CoordinatorEntity, NumberEntity):
     """Number entity to set the inverter power limit."""
 
     _attr_has_entity_name = True
-    _attr_name = "Limite Potenza"
+    _attr_translation_key = "power_limit"
+    _attr_device_class = NumberDeviceClass.POWER
     _attr_icon = "mdi:transmission-tower"
-    _attr_native_min_value = 500
-    _attr_native_max_value = 1000
-    _attr_native_step = 10
+    _attr_native_min_value = POWER_LIMIT_MIN
+    _attr_native_step = POWER_LIMIT_STEP
     _attr_native_unit_of_measurement = "W"
     _attr_mode = NumberMode.BOX
 
@@ -40,16 +46,8 @@ class SossenPowerLimit(CoordinatorEntity, NumberEntity):
         """Initialize the number entity."""
         super().__init__(coordinator)
         self._attr_unique_id = f"{entry.data[CONF_DEVICE_ID]}_power_limit"
-
-    @property
-    def device_info(self):
-        """Return device info."""
-        return {
-            "identifiers": {(DOMAIN, self.coordinator.entry.data[CONF_DEVICE_ID])},
-            "name": "SOSSEN Microinverter",
-            "manufacturer": "SOSSEN",
-            "model": "2in1-DE 800W",
-        }
+        self._attr_native_max_value = coordinator.model["power_limit_max"]
+        self._attr_device_info = build_device_info(entry)
 
     @property
     def native_value(self) -> float | None:

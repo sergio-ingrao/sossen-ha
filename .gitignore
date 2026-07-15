@@ -17,5 +17,10 @@ dashboard_solare.yaml
 # Project notes (not for distribution)
 CLAUDE.md
 
+# Local tooling and personal dashboards (not for distribution)
+ssh_rpi.py
+upload_dashboard.py
+_sossen_dash.json
+
 # Logo source
 logo.webp

@@ -3,20 +3,20 @@
     "step": {
       "user": {
         "title": "SOSSEN Microinverter",
-        "description": "Inserisci i dati di connessione del tuo inverter SOSSEN.\n\n⚠️ **L'inverter deve essere in fase di produzione solare** (di notte è completamente spento). Dopo la configurazione, attendere 2-3 minuti prima che i dati inizino ad apparire.",
+        "description": "Inserisci i dati di connessione del tuo inverter SOSSEN.\n\n⚠️ **L'inverter deve essere alimentato durante la configurazione** (in produzione da sole o batteria) — si spegne completamente quando non ha alcuna fonte di energia. Dopo la configurazione, attendere 2-3 minuti prima che i dati inizino ad apparire.",
         "data": {
+          "model": "Modello inverter",
           "device_ip": "Indirizzo IP",
           "device_id": "Device ID",
           "local_key": "Local Key",
-          "poll_interval": "Intervallo di polling (secondi)",
-          "daytime_only": "Solo diurno (polling solo quando il sole è alto)"
+          "poll_interval": "Intervallo di polling (secondi)"
         },
         "data_description": {
+          "model": "Famiglia del tuo inverter: numero di ingressi pannello e potenza massima",
           "device_ip": "IP locale dell'inverter (es. 192.168.1.x)",
           "device_id": "App Smart Life → Impostazioni → Informazioni sul dispositivo → Device ID",
           "local_key": "Da Tuya IoT Platform → Dispositivi → Local Key",
-          "poll_interval": "Ogni quanti secondi interrogare l'inverter (minimo 5)",
-          "daytime_only": "Disabilita il polling di notte per evitare errori di connessione (consigliato per impianti senza batteria)"
+          "poll_interval": "Ogni quanti secondi interrogare l'inverter (minimo 5)"
         }
       }
     },
@@ -25,6 +25,91 @@
     },
     "abort": {
       "already_configured": "Questo dispositivo è già configurato."
+    }
+  },
+  "selector": {
+    "model": {
+      "options": {
+        "2in1": "SOSSEN 2in1 — 2 pannelli (600 / 800 / 1000 W)",
+        "4in1": "SOSSEN 4in1 — 4 pannelli (2400 W)"
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "dc_power_total_w": {
+        "name": "Potenza DC Totale"
+      },
+      "ac_power_w": {
+        "name": "Potenza AC"
+      },
+      "ac_voltage_v": {
+        "name": "Tensione AC"
+      },
+      "ac_frequency_hz": {
+        "name": "Frequenza AC"
+      },
+      "dc_voltage_1_v": {
+        "name": "Tensione DC 1"
+      },
+      "dc_current_1_a": {
+        "name": "Corrente DC 1"
+      },
+      "dc_power_1_w": {
+        "name": "Potenza DC 1"
+      },
+      "dc_voltage_2_v": {
+        "name": "Tensione DC 2"
+      },
+      "dc_current_2_a": {
+        "name": "Corrente DC 2"
+      },
+      "dc_power_2_w": {
+        "name": "Potenza DC 2"
+      },
+      "dc_voltage_3_v": {
+        "name": "Tensione DC 3"
+      },
+      "dc_current_3_a": {
+        "name": "Corrente DC 3"
+      },
+      "dc_power_3_w": {
+        "name": "Potenza DC 3"
+      },
+      "dc_voltage_4_v": {
+        "name": "Tensione DC 4"
+      },
+      "dc_current_4_a": {
+        "name": "Corrente DC 4"
+      },
+      "dc_power_4_w": {
+        "name": "Potenza DC 4"
+      },
+      "energy_total_kwh": {
+        "name": "Energia Totale"
+      },
+      "temperature_c": {
+        "name": "Temperatura"
+      },
+      "wifi_signal": {
+        "name": "Parametro 4172"
+      },
+      "status": {
+        "name": "Stato",
+        "state": {
+          "producing": "In produzione",
+          "alarm": "Allarme",
+          "off": "Spento"
+        }
+      },
+      "raw": {
+        "name": "Dati Grezzi"
+      }
+    },
+    "number": {
+      "power_limit": {
+        "name": "Limite Potenza"
+      }
     }
   }
 }
