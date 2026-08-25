@@ -41,6 +41,14 @@ MODELS = {
 LISTEN_WINDOW = 8
 ARM_AFTER_SILENCE = 30
 HEARTBEAT_EVERY = 9
+# The vendor-app "arm" that flips the inverter into 5s broadcast mode:
+# a CONTROL_NEW setting raw DP 19 = 0x0101010101 (base64 "AQEBAQE=").
+# Recovered by decrypting a capture of the SmartLife app's local Tuya 3.5
+# session and confirmed live (0 frames idle -> steady 5.1s after the set).
+# The device broadcasts to ALL connected sessions once armed, and reverts
+# to the ~608s spontaneous cadence ~1-2 min after the last arm/keepalive.
+ARM_DP19_DP = 19
+ARM_DP19_VALUE = "AQEBAQE="
 # A "failed poll" is now a 10s listen cycle with no pushed frame, and
 # 30-120s of silence is NORMAL while the stream re-arms, so the failure
 # thresholds are in minutes, not seconds.

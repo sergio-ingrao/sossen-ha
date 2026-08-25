@@ -19,6 +19,8 @@ from .const import (
     CONF_MODEL,
     CONF_POLL_INTERVAL,
     ARM_AFTER_SILENCE,
+    ARM_DP19_DP,
+    ARM_DP19_VALUE,
     DEFAULT_MODEL,
     DEFAULT_POLL_INTERVAL,
     DOMAIN,
@@ -129,16 +131,19 @@ class SossenCoordinator(DataUpdateCoordinator):
 
         Runs in executor thread, blocking is OK. The inverter pushes the
         full data frame (DP 21, preceded by the compact DP 25) every ~5s
-        once its report stream is armed. Do NOT call updatedps() here:
-        tinytuya flushes the receive buffer before sending, discarding any
-        frame pushed since the previous cycle — that bug is what made v1.1
-        see fresh data only every ~10 minutes.
+        once its report stream is ARMED, and stops ~1-2 min after the last
+        arm/keepalive. Do NOT call updatedps() to fetch: tinytuya flushes
+        the receive buffer before sending, discarding any frame pushed since
+        the previous cycle — that bug is what made v1.1 see fresh data only
+        every ~10 minutes.
 
-        When the stream has been silent for ARM_AFTER_SILENCE we nudge it
-        with a plain DP_QUERY (fire-and-forget), the same request the
-        vendor app issues on open. Measured on the 800W unit: the stream
-        resumes within ~2 minutes of repeated arms, then stays at ~5s
-        cadence indefinitely while a session keeps listening.
+        The arm is the vendor app's secret: it sets DP 19 to the raw value
+        ARM_DP19_VALUE, which flips the device into 5s broadcast mode toward
+        ALL connected sessions (recovered by decrypting a capture of the
+        SmartLife app's local Tuya 3.5 traffic). We re-send it whenever the
+        stream has been silent for ARM_AFTER_SILENCE, plus a heartbeat every
+        HEARTBEAT_EVERY to keep the session alive. Verified live: 0 frames
+        in 20s idle, then a steady 5.1s cadence within seconds of the arm.
         """
         try:
             device = self._ensure_device()
@@ -148,10 +153,10 @@ class SossenCoordinator(DataUpdateCoordinator):
                 self._last_heartbeat = now
             if now - self._last_push >= ARM_AFTER_SILENCE:
                 _LOGGER.debug(
-                    "Push stream silent for %.0fs, re-arming with DP_QUERY",
-                    now - self._last_push,
+                    "Push stream silent for %.0fs, re-arming (DP19=%s)",
+                    now - self._last_push, ARM_DP19_VALUE,
                 )
-                device.send(device.generate_payload(tinytuya.DP_QUERY))
+                device.set_value(ARM_DP19_DP, ARM_DP19_VALUE, nowait=True)
 
             latest: dict | None = None
             deadline = time.monotonic() + LISTEN_WINDOW
