@@ -91,8 +91,11 @@
       "temperature_c": {
         "name": "Temperature"
       },
-      "wifi_signal": {
-        "name": "Parameter 4172"
+      "energy_dc_total_kwh": {
+        "name": "DC Energy (lifetime)"
+      },
+      "conversion_efficiency_lifetime": {
+        "name": "Conversion Efficiency (lifetime)"
       },
       "status": {
         "name": "Status",

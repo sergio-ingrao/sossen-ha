@@ -19,12 +19,13 @@ from .const import (
     DP_DC_VOLTAGE_2,
     DP_DC_VOLTAGE_3,
     DP_DC_VOLTAGE_4,
+    DP_ENERGY_AC_UNITS,
+    DP_ENERGY_DC_UNITS,
     DP_ENERGY_TOTAL,
     DP_SET_FLAG,
     DP_SET_POWER_LIMIT,
     DP_STATUS,
     DP_TEMPERATURE,
-    DP_UNKNOWN_4172,
 )
 
 
@@ -100,8 +101,28 @@ def decode_payload(payload_b64: str) -> dict | None:
             round(energy_raw * 0.1, 1) if energy_raw is not None else None
         ),
         "temperature_c": round(_signed(records.get(DP_TEMPERATURE, 0)) * 0.1, 1),
-        "wifi_signal": records.get(DP_UNKNOWN_4172, 0),
     }
+
+    # Lifetime conversion efficiency and DC-side energy, derived from the two
+    # monotonic energy counters (4172 = AC, 4174 = DC). The efficiency is a
+    # pure ratio (unit-independent); DC energy is anchored to the accurate AC
+    # odometer (DP 4098) scaled by the counter ratio, so no magic kWh-per-unit
+    # constant is baked in. Both are None when the counters are absent (older
+    # firmware / other models) so nothing shows a bogus 0.
+    ac_units = records.get(DP_ENERGY_AC_UNITS, 0)
+    dc_units = records.get(DP_ENERGY_DC_UNITS, 0)
+    if ac_units and dc_units:
+        result["conversion_efficiency_lifetime"] = round(
+            ac_units / dc_units * 100, 1
+        )
+        ac_energy = result["energy_total_kwh"]
+        result["energy_dc_total_kwh"] = (
+            round(ac_energy * dc_units / ac_units, 1)
+            if ac_energy is not None else None
+        )
+    else:
+        result["conversion_efficiency_lifetime"] = None
+        result["energy_dc_total_kwh"] = None
 
     # Include all raw DP values for debugging
     result["_raw"] = {str(k): v for k, v in sorted(records.items())}

@@ -91,8 +91,15 @@ DP_DC_CURRENT_4 = 4157
 DP_DC_VOLTAGE_4 = 4158
 DP_DC_POWER_4 = 4159
 DP_DC_POWER_TOTAL = 4169
-# Function unverified (varies slowly; possibly a temperature or RSSI).
-DP_UNKNOWN_4172 = 4172
+# Lifetime energy counters (identified by correlation, not WiFi/RSSI as an
+# older revision assumed): 4172 increments once per ~0.205 kWh of AC energy
+# produced — it grows only during production, is frozen at night, and its
+# absolute value matches the fine odometer DP 4098 (e.g. 4900 * 0.205 =
+# 1004 kWh = the app's "total production"). 4174 is the same on the DC/input
+# side (~5% higher), so 4172/4174 is the lifetime conversion efficiency, the
+# signal for a slowly-degrading microinverter. Both are 16-bit and monotonic.
+DP_ENERGY_AC_UNITS = 4172
+DP_ENERGY_DC_UNITS = 4174
 DP_TEMPERATURE = 4183
 
 # DP IDs for writing (0x8000+ range)
@@ -262,10 +269,19 @@ SENSOR_DEFINITIONS = [
         "when_off": "unavailable",
     },
     {
-        "key": "wifi_signal",
+        "key": "energy_dc_total_kwh",
+        "device_class": SensorDeviceClass.ENERGY,
+        "unit": "kWh",
+        "state_class": SensorStateClass.TOTAL_INCREASING,
+        "when_off": "retain",
+        "entity_category": EntityCategory.DIAGNOSTIC,
+    },
+    {
+        "key": "conversion_efficiency_lifetime",
+        "unit": "%",
         "state_class": SensorStateClass.MEASUREMENT,
-        "icon": "mdi:help-circle-outline",
-        "when_off": "unavailable",
+        "icon": "mdi:transmission-tower",
+        "when_off": "retain",
         "entity_category": EntityCategory.DIAGNOSTIC,
     },
 ]
