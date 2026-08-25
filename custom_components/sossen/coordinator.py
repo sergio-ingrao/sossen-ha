@@ -3,6 +3,7 @@
 import asyncio
 import logging
 import socket
+import time
 from datetime import timedelta
 
 import tinytuya
@@ -17,17 +18,19 @@ from .const import (
     CONF_LOCAL_KEY,
     CONF_MODEL,
     CONF_POLL_INTERVAL,
+    ARM_AFTER_SILENCE,
     DEFAULT_MODEL,
     DEFAULT_POLL_INTERVAL,
     DOMAIN,
     DP_SET_POWER_LIMIT,
+    HEARTBEAT_EVERY,
+    LISTEN_WINDOW,
     MAX_FAILED_POLLS,
     MODELS,
     OFF_POLL_INTERVAL,
     RECONNECT_AFTER_FAILURES,
     SENSOR_DEFINITIONS,
     TUYA_DP_COMMAND,
-    TUYA_DP_POLL,
     TUYA_PORT,
     WARMUP_POLLS,
 )
@@ -75,6 +78,11 @@ class SossenCoordinator(DataUpdateCoordinator):
         # successful poll) so a wedged socket heals silently but a genuinely
         # dead device still surfaces as unavailable instead of stale data.
         self._reconnect_grace_used: bool = False
+        # Push-listen state: monotonic time of the last pushed frame and
+        # of the last heartbeat. _last_push=0 arms the stream immediately
+        # at setup.
+        self._last_push: float = 0.0
+        self._last_heartbeat: float = 0.0
         # The tinytuya Device shares one socket and session state: never let
         # two executor threads (poll vs. set-limit) touch it concurrently.
         self._device_lock = asyncio.Lock()
@@ -90,7 +98,7 @@ class SossenCoordinator(DataUpdateCoordinator):
             self._device = tinytuya.Device(
                 self._device_id, self._device_ip, self._local_key, version=3.5
             )
-            self._device.set_socketTimeout(10)
+            self._device.set_socketTimeout(3)
             self._device.set_socketPersistent(True)
         return self._device
 
@@ -116,30 +124,51 @@ class SossenCoordinator(DataUpdateCoordinator):
         except OSError:
             return False
 
-    def _sync_poll(self) -> dict | None:
-        """Poll the inverter (runs in executor thread, blocking is OK).
+    def _sync_listen(self) -> dict | None:
+        """Listen for pushed data frames for up to LISTEN_WINDOW seconds.
 
-        After updatedps, the device sends DP25 first, then DP21.
-        We need multiple receive() calls to get DP21.
+        Runs in executor thread, blocking is OK. The inverter pushes the
+        full data frame (DP 21, preceded by the compact DP 25) every ~5s
+        once its report stream is armed. Do NOT call updatedps() here:
+        tinytuya flushes the receive buffer before sending, discarding any
+        frame pushed since the previous cycle — that bug is what made v1.1
+        see fresh data only every ~10 minutes.
+
+        When the stream has been silent for ARM_AFTER_SILENCE we nudge it
+        with a plain DP_QUERY (fire-and-forget), the same request the
+        vendor app issues on open. Measured on the 800W unit: the stream
+        resumes within ~2 minutes of repeated arms, then stays at ~5s
+        cadence indefinitely while a session keeps listening.
         """
         try:
             device = self._ensure_device()
-            device.updatedps(TUYA_DP_POLL)
+            now = time.monotonic()
+            if now - self._last_heartbeat >= HEARTBEAT_EVERY:
+                device.heartbeat(nowait=True)
+                self._last_heartbeat = now
+            if now - self._last_push >= ARM_AFTER_SILENCE:
+                _LOGGER.debug(
+                    "Push stream silent for %.0fs, re-arming with DP_QUERY",
+                    now - self._last_push,
+                )
+                device.send(device.generate_payload(tinytuya.DP_QUERY))
 
-            for attempt in range(5):
+            latest: dict | None = None
+            deadline = time.monotonic() + LISTEN_WINDOW
+            while time.monotonic() < deadline:
                 result = device.receive()
                 if not result or "dps" not in result:
                     continue
-
-                for dp_key, val in result["dps"].items():
+                for _dp_key, val in result["dps"].items():
                     if isinstance(val, str) and len(val) > 20:
                         decoded = decode_payload(val)
                         if decoded:
-                            return decoded
-
-            return None
+                            latest = decoded
+            if latest is not None:
+                self._last_push = time.monotonic()
+            return latest
         except Exception as err:
-            _LOGGER.debug("_sync_poll exception: %s", err)
+            _LOGGER.debug("_sync_listen exception: %s", err)
             return None
 
     def _sync_read_power_limit(self) -> int | None:
@@ -222,7 +251,7 @@ class SossenCoordinator(DataUpdateCoordinator):
             self.update_interval = timedelta(seconds=self._poll_interval)
             # Fall through and try a real poll right away.
 
-        data = await self._locked_job(self._sync_poll)
+        data = await self._locked_job(self._sync_listen)
 
         if data is not None:
             self._failed_polls = 0

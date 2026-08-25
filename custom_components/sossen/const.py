@@ -30,17 +30,31 @@ MODELS = {
     "4in1": {"model": "4in1 (2400W)", "channels": 4, "power_limit_max": 2400},
 }
 
-# Consecutive failed polls before the TCP probe decides between
-# "inverter powered off" and "communication error".
-MAX_FAILED_POLLS = 3
-# Consecutive failures after which a wedged socket is torn down and rebuilt.
-# Kept low so a dropped session heals in seconds instead of minutes; the
-# rebuilt socket is protected by WARMUP_POLLS (see the coordinator), so it
-# still gets the ~2 min of stable connection the device needs before it
-# answers, and the sensors stay on their last value rather than flipping to
-# unavailable during the reconnect.
-RECONNECT_AFTER_FAILURES = 3
-# Failed polls tolerated (reported as "off", not as an error) while the
+# --- Push-listen tuning (v1.2) -------------------------------------------
+# The inverter, once armed, PUSHES the full data frame (DP 21) every ~5s on
+# its own; polling it with updatedps() is counterproductive (tinytuya
+# flushes the receive buffer before sending, discarding pushed frames).
+# Each coordinator cycle listens for LISTEN_WINDOW seconds and re-arms the
+# stream with a DP_QUERY after ARM_AFTER_SILENCE of quiet — that is what
+# the vendor app does on open (measured: the stream resumes within ~2 min
+# of repeated arms and then stays up at ~5s cadence).
+LISTEN_WINDOW = 8
+ARM_AFTER_SILENCE = 30
+HEARTBEAT_EVERY = 9
+# A "failed poll" is now a 10s listen cycle with no pushed frame, and
+# 30-120s of silence is NORMAL while the stream re-arms, so the failure
+# thresholds are in minutes, not seconds.
+# Consecutive silent cycles before the TCP probe decides between
+# "inverter powered off" and "communication error" (~5 min).
+MAX_FAILED_POLLS = 30
+# Consecutive silent cycles after which a wedged socket is torn down and
+# rebuilt (~3 min: arming gets a fair chance first; a rebuilt session also
+# arms the stream by itself most of the time). The rebuilt socket is
+# protected by WARMUP_POLLS (see the coordinator), so it still gets the
+# stable-connection grace the device needs, and the sensors stay on their
+# last value rather than flipping to unavailable during the reconnect.
+RECONNECT_AFTER_FAILURES = 18
+# Silent cycles tolerated (reported as "off", not as an error) while the
 # device boots: it needs ~2 min after power-on before answering.
 WARMUP_POLLS = 20
 
